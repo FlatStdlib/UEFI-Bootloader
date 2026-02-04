@@ -1,5 +1,5 @@
 x86_64-w64-mingw32-gcc -ffreestanding -fshort-wchar -mno-red-zone \
-  -I gnu-efi/inc \
+  -I third_party_libs/gnu-efi/inc \
   -c test.c -o test.obj
 
 nasm -f win64 boot.asm -o boot.obj
