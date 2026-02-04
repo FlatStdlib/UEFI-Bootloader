@@ -13,3 +13,18 @@ lld-link \
   test.obj
 
 rm boot.obj test.obj BOOTX64.lib
+
+download_efi()
+{
+  git clone https://github.com/vathpela/gnu-efi.git
+  cd gnu-efi
+
+  make ARCH=x86_64
+}
+
+download_edk()
+{
+  git clone https://github.com/tianocore/edk2.git
+  cd edk2
+  git submodule update --init
+}
