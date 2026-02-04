@@ -14,6 +14,12 @@ lld-link \
 
 rm boot.obj test.obj BOOTX64.lib
 
+download_dependencies()
+{
+  download_efi();
+  download_efi();
+}
+
 download_efi()
 {
   git clone https://github.com/vathpela/gnu-efi.git
