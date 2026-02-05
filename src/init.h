@@ -1,9 +1,14 @@
 #pragma once
 
+extern int __FSL_DEBUG__;
 #ifndef _FSL_EFI_H
-#define _ESL_EFI_H
-#define _FSL_MEM_H
-#define _FSL_ALLOCATOR_H
+        #define _FSL_EFI_H
+        #define _FSL_MEM_H
+        #define _FSL_CHAR_H
+        #define _FSL_STRING_H
+        #define _FSL_INTERNAL_H
+        #define _FSL_ALLOCATOR_H
+#endif
 
 #include <efi.h>
 #include <efilib.h>
@@ -28,7 +33,7 @@ typedef unsigned int            u32;
 typedef unsigned long long      u64;
 
 /* string */
-typedef char*                   string;
+typedef u16                     *string;
 
 /* general array */
 typedef void**                  array;
@@ -55,6 +60,9 @@ typedef i32                     pos_t;
 #define true                    1
 #define false                   0
 
+
+extern u16                      _OUTPUT_[1024];
+
 /*
         Compiler Detection - Disable GLIBC Shit
 */
@@ -76,57 +84,176 @@ typedef _cordination position;
 typedef _cordination cursor_pos_t;
 
 typedef struct {
-    EFI_SYSTEM_TABLE *table;
-    cursor_pos_t      cursor;
+        sArr            variables;
+        i32             var_len;
+        cursor_pos_t    cursor;
 } fsl_efi;
+
+extern fsl_efi _FSLEFI_;
+
+/*
+    @DOC
+        @param count     Max count of elements in array
+        @param arr       array to iterate
+        @param callback  Iterator callback variable
+        @param counter   A counter
+
+        @returns n/a
+        @note An iterator for array management
+*/
+#define foreach(count, arr, callback, counter, ...)             \
+        for(int i = 0; i < count; i++)                          \
+        {                                                       \
+                char callback = arr[i];                         \
+                __VA_ARGS__                                     \
+        }
+
+/*
+	@DOC
+		@param count         Max count of elements in array
+		@param arr           array to iterate
+		@param callback      Iterator callback variable
+		@param counter       A counter
+
+		@returns n/a
+		@note An iterator for double-pointer array management
+*/
+#define foreach_ptr(count, arr, callback, counter, ...)         \
+        for(int i = 0; i < count; i++)                          \
+        {                                                       \
+                void *callback = arr[i]                         \
+                __VA_ARGS__                                     \
+        }
+
+
+
+#ifdef _FSL_INTERNAL_H
+        #define _printf(format, ...) \
+		_sprintf(_OUTPUT_, format, (void *[]){__VA_ARGS__, 0}); \
+	        print(_OUTPUT_);
+
+	#define fsl_panic(msg) 	\
+		__fsl_panic(msg, __FILE__, __LINE__);
+
+	/*
+		@DOC
+			@return: n/a
+			@note: Enable debug mode, stdout
+	*/
+	public fn		toggle_debug_mode();
+
+	/*
+		@DOC
+			@param ch		Char to output
+
+			@return: n/a
+			@note: Output char to stdout
+	*/
+	public fn		printc(const char ch);
+
+	/*
+		@DOC
+			@param num		int to output
+
+			@return: n/a
+			@note: Output int to stdout. this is supports num > -1 && num < 10
+	*/
+	public fn 		printi(int num);
+
+	/*
+		@DOC
+			@param value 	int to print
+
+			@return: n/a
+			@note: Output int to stdout. this is supports num > 9
+	*/
+	public fn 		_printi(int value);
+
+	/*
+		@DOC
+			@param buff		buffer to output
+
+			@return: n/a
+			@note: Output string to stdout
+	*/
+	public fn 		print(const string buff);
+
+	/*
+		@DOC
+			@param buff		buffer to output
+
+			@return: n/a
+			@note: Output string to stdout with a newline sequence
+	*/
+	public fn		println(const string buff);
+
+	/*
+		@DOC
+			@param arr 		Array of strings to output
+
+			@return: n/a
+			@note: Output an array of strings
+	*/
+	public fn 		print_args(sArr arr);
+
+	/*
+		@DOC
+			@param p 		Pointer to copy
+			@param size 	Size for allocation
+
+			@returns: new ptr
+			@note: Copy a memory chunk to a new heap block
+	*/
+	public ptr		to_heap(ptr p, i32 sz);
+#endif
 
 /*
                 Memory Utilities
         @File: src/mem.c
 */
 #ifdef _FSL_MEM_H
-    /*
-        @DOC
-            @param p                The pointer to zero
-            @param size             Amount to zero
+	/*
+		@DOC
+			@param p                The pointer to zero
+			@param size             Amount to zero
 
-            @return: n/a
-            @note: Zero an entire memery block
-    */
-    public fn               memzero(any p, size_t size);
+			@return: n/a
+			@note: Zero an entire memery block
+	*/
+	public fn               memzero(any p, size_t size);
 
-    /*
-        @DOC
-            @param src              Pointer to compare
-            @param p                Pointer to compare
-            @param size             Max size to compare
+	/*
+		@DOC
+			@param src              Pointer to compare
+			@param p                Pointer to compare
+			@param size             Max size to compare
 
-            @return: int
-            @note: Compare 2 memory block to match
-    */
-    public int              mem_cmp(any src, any p, size_t size);
+			@return: int
+			@note: Compare 2 memory block to match
+	*/
+	public int              mem_cmp(any src, any p, size_t size);
 
-    /*
-        @DOC
-            @param dest             Pointer to copy to
-            @param src              Pointer to copy from
-            @param size             Max size to copy
+	/*
+		@DOC
+			@param dest             Pointer to copy to
+			@param src              Pointer to copy from
+			@param size             Max size to copy
 
-            @return: n/a
-            @note: Copy an entire memory block to another
-    */
-    public fn               mem_cpy(any dest, any src, size_t size);
+			@return: n/a
+			@note: Copy an entire memory block to another
+	*/
+	public fn               mem_cpy(any dest, any src, size_t size);
 
-    /*
-        @DOC
-            @param p                Pointer to change
-            @param ch               New char to set
-            @param size     Max size to change
-
-            @return: n/a
-            @note: Set a value to the whole memory block
-    */
-    public fn               mem_set(any p, char ch, size_t size);
+	/*
+		@DOC
+			@param p                Pointer to change
+			@param ch               New char to set
+			@param size     Max size to change
+		
+			@return: n/a
+			@note: Set a value to the whole memory block
+	*/
+	public fn               mem_set(any p, char ch, size_t size);
 #endif
 
 /*
@@ -185,4 +312,48 @@ typedef struct {
         public __meta__*        __get_meta__(any ptr);
 #endif
 
+
+/*
+	 	char
+	[ src/stdlib/char.c ]
+*/
+#ifdef _FSL_CHAR_H
+	public i32 		is_ascii(const char c);
+	public i32 		is_ascii_alpha(const char c);
+	public i32 		count_char(const string buffer, const char ch);
+	public i32              find_char(const string buffer, const char ch);
+        public i32              find_char_at(const string buffer, const char ch, i32 match);
+        public int              _alt_find_char_at(const string buffer, const char ch, int match, int *start);
+	public bool 	        trim_char(string buff, int ch);
+	public bool		trim_char_idx(string buff, int pos);
+	public int 		replace_char(string buffer, const char find, const char replace);
+#endif
+
+/*
+	 	string
+	[ src/stdlib/string.c ]
+*/
+#ifdef _FSL_STRING_H
+	#define __sprintf(dest, format, ...) \
+			_sprintf(dest, format, (void *[]){__VA_ARGS__, 0});
+
+	public fn 	        ptr_to_str(ptr p, string out);
+	public string	        int_to_str(int num);
+	public fn 	        _sprintf(string buffer, string format, any* args);
+	public fn 	        str_append_int(string dest, int num);
+	public len_t 	        str_len(string buffer);
+	public string 	        str_dup(const string buffer);
+	public bool 	        str_append_array(string buff, const array arr);
+	public bool   	        str_append(string src, const string sub);
+	public bool	        str_cmp(const string src, const string needle);
+	public pos_t 	        find_string(const string buff, const string needle);
+	public sArr 	        split_lines(const string buffer, int* idx);
+	public sArr 	        split_string(const string buffer, const char ch, int* idx);
+	public string 	        get_sub_str(const string buffer, int start, int end);
+	public bool 	        is_empty(string buffer);
+	public bool 	        str_startswith(string buffer, string needle);
+	public bool 	        str_endswith(string buffer, string needle);
+	public fn 	        byte_to_hex(u8 byte, string out);
+	public bool 	        str_strip(string buffer);
+	public string 	        float_to_str(double n, char *out, int precision);
 #endif

@@ -1,24 +1,21 @@
 mkdir -p third_party_libs
 
-# x86_64-w64-mingw32-gcc -ffreestanding -fshort-wchar -mno-red-zone \
-#   -I third_party_libs/gnu-efi/inc \
-#   -c src/allocator.c -o allocator.obj
-
-# x86_64-w64-mingw32-gcc -ffreestanding -fshort-wchar -mno-red-zone \
-#   -I third_party_libs/gnu-efi/inc \
-#   -c src/init.c -o init.obj
-  
-# x86_64-w64-mingw32-gcc -ffreestanding -fshort-wchar -mno-red-zone \
-#   -I third_party_libs/gnu-efi/inc \
-#   -c src/internal.c -o internal.obj
-
 FILES=$(cd src && ls -1 *.c; cd ..)
 PWD=$(pwd)
+
+# Compile to Object File(s) #
 for file in $FILES; do 
-  x86_64-w64-mingw32-gcc -ffreestanding -fshort-wchar -mno-red-zone \
-    -I third_party_libs/gnu-efi/inc \
-    -c "src/$file" -o "${file%.c}.obj"
+  x86_64-w64-mingw32-gcc \
+  -ffreestanding \
+  -fshort-wchar \
+  -mno-red-zone \
+  -fno-builtin \
+  -fno-stack-protector \
+  -mno-stack-arg-probe \
+  -I third_party_libs/gnu-efi/inc \
+  -c "src/$file" -o "${file%.c}.obj"
 done
+
 nasm -f win64 boot.asm -o boot.obj
 
 
@@ -29,7 +26,7 @@ lld-link \
   /out:BOOTX64.EFI \
   *.obj
 
-rm *.obj BOOTX64.lib
+rm *.obj # BOOTX64.lib
 
 download_efi() {
   git clone https://github.com/vathpela/gnu-efi.git

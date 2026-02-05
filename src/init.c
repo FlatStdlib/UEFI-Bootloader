@@ -2,46 +2,69 @@
 
 EFI_BOOT_SERVICES *gBS;
 EFI_SYSTEM_TABLE *gST;
+fsl_efi _FSLEFI_ = {0};
 
 __declspec(dllexport) void EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable); 
+public fn fsl_cli();
 
-public fn test_this(EFI_SYSTEM_TABLE *SystemTable)
-{
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"Test Function!\n");
-}
-
+u16 NAME[100];
 public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable)
 {
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"FSL Initialized....!\n");
-    test_this(SystemTable);
+    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"Initializing UEFI");
+    gST = SystemTable;
+    _FSLEFI_ = (fsl_efi){
+        .variables = allocate(0, sizeof(char)),
+        .var_len = 0,
+        .cursor = (_cordination){0}
+    };
+
+    println(L"[ + ] FSL EFI Initialized");
+    println(L"[ + ] Initializing heap");
+    init_mem();
+    println(L"[ + ] Heap Initialized");
+    println(L"Loading FSL CLI");
+    fsl_cli();
+
+
 }
 
-// public fn my_c_function(EFI_SYSTEM_TABLE *SystemTable)
-// {
-//     EFI_INPUT_KEY Key;
-//     SystemTable->ConOut->OutputString(SystemTable->ConOut, L"Press any key to continue...\n");
-//     for(int i = 0; i < 10; i++)
-//         SystemTable->ConOut->OutputString(SystemTable->ConOut, L"Called C function!\r\n");
+public fn fsl_cli()
+{
+    gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(EFI_LIGHTGREEN, EFI_BLACK)
+    );
+    println(L"Welcome to FSL OS's CLI");
+    println(L"Type ? for a list of commands");
+    EFI_INPUT_KEY Key;
+    u16 CMD[1024];
+    int len = 0;
+    gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(EFI_WHITE, EFI_BLACK)
+    );
 
-//     while(1)
-//     {
-//         CHAR16 key = SystemTable->ConIn->ReadKeyStroke(SystemTable->ConIn, &Key);
-//         if(key == EFI_SUCCESS)
-//         {
-//             CHAR16 buf[2];
-//             if (Key.UnicodeChar != 0) {
-//                 buf[0] = Key.UnicodeChar;
-//                 buf[1] = L'\0'; 
-//                 SystemTable->ConOut->OutputString(SystemTable->ConOut, L"You pressed: ");
-//                 SystemTable->ConOut->OutputString(SystemTable->ConOut, buf);
-//                 SystemTable->ConOut->OutputString(SystemTable->ConOut, L"\r\n");
-//             } else {
-//                 buf[0] = Key.ScanCode;
-//                 buf[1] = L'\0'; 
-//                 SystemTable->ConOut->OutputString(SystemTable->ConOut, L"Special key pressed: scan code =");
-//                 SystemTable->ConOut->OutputString(SystemTable->ConOut, buf);
-//                 SystemTable->ConOut->OutputString(SystemTable->ConOut, L"\r\n");
-//             }
-//         }
-//     }
-// }
+    while(1)
+    {
+        u16 ret = gST->ConIn->ReadKeyStroke(gST->ConIn, &Key);
+        if(ret == EFI_SUCCESS)
+        {
+            CMD[len++] = Key.UnicodeChar;
+            if (Key.UnicodeChar != 0) {
+                if(Key.UnicodeChar == 0x0A) {
+                    memzero(CMD, 1024);
+                    len = 0;
+                }
+                print(L"You pressed: "), printc(CMD[len - 1]), println(NULL);
+            } else {
+                print(L"You pressed: "), printc(CMD[len - 1]), println(NULL);
+            }
+
+            if(len > 0)
+            {
+                print(L"Current Buffer: "), print(CMD), println(NULL);
+            }
+            print(L"> ");
+        }
+    }
+}

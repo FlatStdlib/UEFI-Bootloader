@@ -21,7 +21,7 @@ public fn set_heap_debug(void)
 { HEAP_DEBUG = 1; }
 
 public fn init_mem(void) {
-    EFI_STATUS ret = gBS->AllocatePool(EfiLoaderData, _HEAP_PAGE_, &_HEAP_);
+    EFI_STATUS ret = gST->BootServices->AllocatePool(EfiLoaderData, _HEAP_PAGE_, &_HEAP_);
     if(EFI_ERROR(ret))
         return;// fsl_panic("mmap failed!");
 
@@ -136,6 +136,6 @@ public fn uninit_mem(void)
 {
     // if(HEAP_DEBUG || __FSL_DEBUG__)
     //     println("[ + ] Uninitializing");
-    gBS->FreePool(_HEAP_);
+    gST->BootServices->FreePool(_HEAP_);
     // __syscall__((long)_HEAP_, _HEAP_PAGE_, 0, 0, 0, 0, _SYS_MUNMAP);
 }
