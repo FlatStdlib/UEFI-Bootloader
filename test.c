@@ -3,6 +3,11 @@
 
 __declspec(dllexport) void EFIAPI my_c_function(EFI_SYSTEM_TABLE *SystemTable);
 
+void EFIAPI get_input()
+{
+    
+}
+
 void EFIAPI my_c_function(EFI_SYSTEM_TABLE *SystemTable)
 {
     EFI_INPUT_KEY Key;

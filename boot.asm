@@ -1,4 +1,4 @@
-extern my_c_function
+extern Init_FSL
 
 BITS 64
 DEFAULT REL
@@ -25,7 +25,7 @@ efi_main:
 
     ; call C function
     mov rcx, r8          ; restore SystemTable* for C function
-    call my_c_function
+    call Init_FSL
 
 .hang:
     hlt
