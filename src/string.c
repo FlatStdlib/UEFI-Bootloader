@@ -430,6 +430,30 @@ public bool str_strip(string buffer)
     return true;
 }
 
+public bool str_contains(const string buffer, const string needle)
+{
+	if(!buffer)
+		return -1;
+
+	int len = str_len(buffer), slen = str_len(needle);
+	for(int i = 0; i < len; i++)
+	{
+		int free = 0;
+		for(int c = 0; c < slen; c++)
+		{
+			if(buffer[i + c] != needle[c])
+				break;
+
+			free = 1;
+		}
+
+		if(free)
+			return true;
+	}
+
+	return -1;
+}
+
 string float_to_str(double n, char *out, int precision)
 {
     int i = 0;

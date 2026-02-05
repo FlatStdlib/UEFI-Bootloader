@@ -6,6 +6,7 @@ extern int __FSL_DEBUG__;
         #define _FSL_MEM_H
         #define _FSL_CHAR_H
         #define _FSL_STRING_H
+		#define _FSL_MAP_H
         #define _FSL_INTERNAL_H
         #define _FSL_ALLOCATOR_H
 #endif
@@ -82,14 +83,6 @@ typedef struct {
 
 typedef _cordination position;
 typedef _cordination cursor_pos_t;
-
-typedef struct {
-        sArr            variables;
-        i32             var_len;
-        cursor_pos_t    cursor;
-} fsl_efi;
-
-extern fsl_efi _FSLEFI_;
 
 /*
     @DOC
@@ -321,10 +314,10 @@ extern fsl_efi _FSLEFI_;
 	public i32 		is_ascii(const char c);
 	public i32 		is_ascii_alpha(const char c);
 	public i32 		count_char(const string buffer, const char ch);
-	public i32              find_char(const string buffer, const char ch);
-        public i32              find_char_at(const string buffer, const char ch, i32 match);
-        public int              _alt_find_char_at(const string buffer, const char ch, int match, int *start);
-	public bool 	        trim_char(string buff, int ch);
+	public i32		find_char(const string buffer, const char ch);
+    public i32		find_char_at(const string buffer, const char ch, i32 match);
+    public int		_alt_find_char_at(const string buffer, const char ch, int match, int *start);
+	public bool 	trim_char(string buff, int ch);
 	public bool		trim_char_idx(string buff, int pos);
 	public int 		replace_char(string buffer, const char find, const char replace);
 #endif
@@ -357,3 +350,40 @@ extern fsl_efi _FSLEFI_;
 	public bool 	        str_strip(string buffer);
 	public string 	        float_to_str(double n, char *out, int precision);
 #endif
+
+
+#ifdef _FSL_MAP_H
+        typedef struct {
+                string key;
+                ptr value;
+        } _field;
+
+        typedef _field field;
+        typedef _field *field_t;
+        typedef _field **fields_t;
+
+        typedef struct {
+                fields_t        fields;
+                int             len;
+        } _map;
+
+        typedef _map map;
+        typedef _map *map_t;
+
+        public map_t    init_map(void);
+        public bool     map_append(map_t map, string key, string value);
+        public string   find_key(map_t map, string key);
+        public fn		field_destruct(field_t field);      
+        public fn       map_destruct(map_t map);
+#endif
+
+
+typedef struct {
+        map_t           variables;
+        i32             var_len;
+        cursor_pos_t    cursor;
+} fsl_efi;
+
+public bool set_new_variable(const string name, const string value);
+
+extern fsl_efi _FSLEFI_;
