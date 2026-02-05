@@ -2,6 +2,8 @@
 #   -I third_party_libs/gnu-efi/inc \
 #   -c test.c -o test.obj
 
+mkdir -p third_party_libs
+
 x86_64-w64-mingw32-gcc -ffreestanding -fshort-wchar -mno-red-zone \
   -I third_party_libs/gnu-efi/inc \
   -c src/allocator.c -o allocator.obj
