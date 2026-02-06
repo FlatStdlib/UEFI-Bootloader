@@ -4,7 +4,7 @@ public map_t init_map(void)
 {
 	map_t map = allocate(0, sizeof(_map));
 	if(!map)
-		return NULL; // fsl_panic("unable to allocate...!");
+		fsl_panic(L"unable to allocate...!");
 
 	map->fields = allocate(0, sizeof(_field));
 	map->len = 0;
@@ -19,10 +19,10 @@ public bool map_append(map_t map, string key, string value)
 
 	field_t field = allocate(0, sizeof(_field));
 	if(!field)
-		return false; // fsl_panic("segfault");
-        
-	field->key = str_dup(key);
-	field->value = str_dup(value);
+		fsl_panic(L"segfault");
+
+	field->key = copy_heap(key);
+	field->value = copy_heap(value);
 
 	map->fields[map->len++] = field;
 	map->fields = reallocate(map->fields, sizeof(_field) * (map->len + 1));

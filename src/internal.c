@@ -48,7 +48,40 @@ public fn _printi(int num)
 	print((string)buff);
 }
 
+public fn printc_color_text(int fg, int bg, const char ch)
+{
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(fg, bg)
+    );
+
+    u16 buff[2];
+    buff[0] = ch;
+    buff[1] = '\0';
+    print(buff);
+
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(EFI_WHITE, EFI_BLACK)
+    );
+}
+
 public fn print_color_text(int fg, int bg, const string buffer)
+{
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(fg, bg)
+    );
+
+    print(buffer);
+
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(EFI_WHITE, EFI_BLACK)
+    );
+}
+
+public fn println_color_text(int fg, int bg, const string buffer)
 {
 	gST->ConOut->SetAttribute(
         gST->ConOut,
@@ -76,6 +109,22 @@ public fn println(const string buffer)
     gST->ConOut->OutputString(gST->ConOut, L"\r\n");
 }
 
+public fn print_color_text_args(int fg, int bg, string *arr)
+{
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(fg, bg)
+    );
+    
+    for(int i = 0; arr[i] != NULL; i++)
+        print((string)arr[i]);
+
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(EFI_WHITE, EFI_BLACK)
+    );
+}
+
 public fn print_args(string *arr)
 {
     for(int i = 0; arr[i] != NULL; i++)
@@ -91,4 +140,24 @@ public ptr to_heap(ptr p, i32 sz)
 	mem_cpy(pointer, p, sz);
 	((string)pointer)[sz] = '\0';
 	return pointer;
+}
+
+public ptr copy_heap(ptr p)
+{
+    int new_size = __get_size__(p);
+	ptr pointer = allocate(0, new_size + 1);
+	if(!pointer)
+		return NULL;
+
+	mem_cpy(pointer, p, new_size);
+	((string)pointer)[new_size] = '\0';
+	return pointer;
+}
+
+public fn __fsl_panic(string msg, string file, int line)
+{
+	if(__FSL_DEBUG__)
+		print(file), print(L":"), _printi(line), print(L" -> ");
+
+	print(L"\x1b[31merror\x1b[39m: "), println(msg);
 }

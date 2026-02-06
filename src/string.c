@@ -244,15 +244,14 @@ public sArr split_lines(const string buffer, int* idx)
 
         if (buffer[i] == '\n')
         {
-        	int n = str_len((string)LINE);
-        	if (n == 0)
-    	    {
-	        	LINE[0] = ' ';
-        		LINE[1] = '\0';
-        	}
+			int n = str_len((string)LINE);
+			if (n == 0)
+			{
+				LINE[0] = ' ';
+				LINE[1] = '\0';
+			}
 
-        	LINE[_len] = '\0';
-    	    arr[(*idx)++] = str_dup((string)LINE);
+			arr[(*idx)++] = str_dup((string)LINE);
 
 	        sArr new_arr = to_heap(arr, sizeof(string) * ((*idx) + 1));
         	pfree(arr, 1);
@@ -281,12 +280,12 @@ public sArr split_string(const string buffer, const char ch, int* idx)
 		return NULL;
 
 	i32 len = str_len(buffer);
-	i32 lines = count_char(buffer, '\n');
+	i32 lines = count_char(buffer, ch);
 	sArr arr = allocate(sizeof(string), lines + 1);
 	*idx = 0;
 	int _len = 0;
 
-	char LINE[len];
+	u16 LINE[len];
 	for (int i = 0; i < len; i++)
 	{
 		if (buffer[i] == '\0')
@@ -297,16 +296,16 @@ public sArr split_string(const string buffer, const char ch, int* idx)
 			int n = str_len((string)LINE);
 			if (n == 0)
 			{
-				LINE[0] = ' ';
-				LINE[1] = '\0';
+				LINE[_len++] = ' ';
 			}
 
-			arr[(*idx)++] = str_dup((string)LINE);
+			LINE[_len++] = '\0';
+			arr[(*idx)++] = to_heap(LINE, sizeof(u16) * (_len + 1));
 
 			sArr new_arr = to_heap(arr, sizeof(string) * ((*idx) + 1));
 			pfree(arr, 1);
 			arr = new_arr;
-			if (!arr) println((string)"ERR\n");
+			if (!arr) fsl_panic((string)"ERR\n");
 			arr[*idx] = NULL;
 			LINE[0] = '\0';
 			_len = 0;
@@ -318,7 +317,7 @@ public sArr split_string(const string buffer, const char ch, int* idx)
 	}
 
 	
-	arr[(*idx)++] = str_dup((string)LINE);
+	arr[(*idx)++] = to_heap(LINE, sizeof(u16) * (_len + 1));;
 	arr[*idx] = NULL;
 	if (*idx > 0)
 		return arr;

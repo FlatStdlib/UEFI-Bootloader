@@ -6,6 +6,5 @@ public bool set_new_variable(const string name, const string value)
         return false;
 
     
-    map_append(_FSLEFI_.variables, name, value);
-    return true;
+    return map_append(_FSLEFI_->variables, name, value);
 }

@@ -126,7 +126,7 @@ typedef _cordination cursor_pos_t;
 	        print(_OUTPUT_);
 
 	#define fsl_panic(msg) 	\
-		__fsl_panic(msg, __FILE__, __LINE__);
+		__fsl_panic(msg, (string)__FILE__, __LINE__);
 
 	/*
 		@DOC
@@ -170,8 +170,10 @@ typedef _cordination cursor_pos_t;
 			@note: Output string to stdout
 	*/
 	public fn 		print(const string buff);
-
+	public fn 		printc_color_text(int fg, int bg, const char ch);
 	public fn 		print_color_text(int fg, int bg, const string buffer);
+	public fn 		println_color_text(int fg, int bg, const string buffer);
+	public fn 		print_color_text_args(int fg, int bg, string *arr);
 	/*
 		@DOC
 			@param buff		buffer to output
@@ -199,6 +201,8 @@ typedef _cordination cursor_pos_t;
 			@note: Copy a memory chunk to a new heap block
 	*/
 	public ptr		to_heap(ptr p, i32 sz);
+	public ptr copy_heap(ptr p);
+	public fn __fsl_panic(string msg, string file, int line);
 #endif
 
 /*
@@ -380,10 +384,14 @@ typedef _cordination cursor_pos_t;
 
 
 typedef struct {
+		string			dick;
         map_t           variables;
         i32             var_len;
         cursor_pos_t    cursor;
 } fsl_efi;
 
+public string get_line();
+void input_strip(const string buff, int *size);
+public fn blink_cursor();
 public bool set_new_variable(const string name, const string value);
-extern fsl_efi _FSLEFI_;
+extern fsl_efi *_FSLEFI_;

@@ -23,7 +23,7 @@ public fn set_heap_debug(void)
 public fn init_mem(void) {
     EFI_STATUS ret = gST->BootServices->AllocatePool(EfiLoaderData, _HEAP_PAGE_, &_HEAP_);
     if(EFI_ERROR(ret))
-        return;// fsl_panic("mmap failed!");
+        fsl_panic(L"mmap failed!");
 
     // Clear the heap to mark all memory as free
     mem_set(_HEAP_, 1, _HEAP_PAGE_);
@@ -59,7 +59,7 @@ public any allocate(int sz, int len) {
 
     int spot = find_space(mem_needed);
     if (spot == -1)
-        return NULL; // fsl_panic("Unable to find space!\n");
+        fsl_panic(L"Unable to find space!\n");
 
     any ptr = (char *)_HEAP_ + spot;
     __meta__ c = { .size = sz, .length = len, .id = 0x7C };
@@ -84,7 +84,7 @@ public any reallocate(any p, int sz)
 {
     any new_p = allocate(0, sz + 1);
     if(!new_p)
-        return NULL; // fsl_panic("Segfault");
+        fsl_panic(L"Segfault");
 
     mem_cpy(new_p, p, __get_size__(p));
     pfree(p, 1);

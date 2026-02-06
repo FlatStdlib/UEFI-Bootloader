@@ -7,11 +7,15 @@ public fn memzero(any p, size_t size)
 
 public int mem_cmp(any src, any p, size_t size)
 {
-    for(int i = 0; i < size; i++)
+    int i;
+    for(i = 0; i < size; i++)
     {
         if(((char *)src)[i] != ((char *)p)[i])
             return 0;
     }
+
+    if(i != size)
+        return 0;
 
     return 1;
 }
