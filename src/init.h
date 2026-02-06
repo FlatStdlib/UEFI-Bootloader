@@ -171,6 +171,7 @@ typedef _cordination cursor_pos_t;
 	*/
 	public fn 		print(const string buff);
 
+	public fn 		print_color_text(int fg, int bg, const string buffer);
 	/*
 		@DOC
 			@param buff		buffer to output
@@ -385,5 +386,4 @@ typedef struct {
 } fsl_efi;
 
 public bool set_new_variable(const string name, const string value);
-
 extern fsl_efi _FSLEFI_;

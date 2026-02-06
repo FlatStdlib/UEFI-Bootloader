@@ -48,6 +48,21 @@ public fn _printi(int num)
 	print((string)buff);
 }
 
+public fn print_color_text(int fg, int bg, const string buffer)
+{
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(fg, bg)
+    );
+
+    println(buffer);
+
+	gST->ConOut->SetAttribute(
+        gST->ConOut,
+        EFI_TEXT_ATTR(EFI_WHITE, EFI_BLACK)
+    );
+}
+
 public fn print(const string buffer)
 {
     gST->ConOut->OutputString(gST->ConOut, buffer);
