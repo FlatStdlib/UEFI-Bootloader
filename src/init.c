@@ -81,15 +81,15 @@ public fn fsl_cli()
 	        if (visible) {
 		        gST->ConOut->SetCursorPosition(
 			        gST->ConOut,
-			        CursorX,
-			        CursorY - 1
+			        CursorX - 1,
+			        CursorY
 			    );
 	            print_color_text(EFI_WHITE, EFI_GREEN, L"_");
 	        } else {
 		        gST->ConOut->SetCursorPosition(
 			        gST->ConOut,
-			        CursorX,
-			        CursorY - 1
+			        CursorX - 1,
+			        CursorY
 			    );
 	            print_color_text(EFI_WHITE, EFI_BLACK, L" ");
 	        }
@@ -99,6 +99,7 @@ public fn fsl_cli()
         {
             if(Key.UnicodeChar != 0 && is_ascii(Key.UnicodeChar))
             {
+	            print_color_text(EFI_WHITE, EFI_BLACK, Key.Unicode);
 	            CMD[len++] = Key.UnicodeChar;
 			}
 
