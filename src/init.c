@@ -2,18 +2,21 @@
 
 EFI_BOOT_SERVICES *gBS;
 EFI_SYSTEM_TABLE *gST;
+EFI_HANDLE gImage;
 fsl_efi *_FSLEFI_ = NULL;
 u16 *SYSTEM_USER_NAME = NULL;
 #define CPU_HZ 3000000000ULL
 #define BLINK_INTERVAL (CPU_HZ)
 
 public fn fsl_cli();
-__declspec(dllexport) void EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable);
+__declspec(dllexport) public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle);
 
-public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable)
+public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle)
 {
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"[ + ] Initializing UEFI\r\n");
     gST = SystemTable;
+    gImage = ImageHandle;
+    gBS = SystemTable->BootServices;
+    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"[ + ] Initializing UEFI\r\n");
     println(L"[ + ] FSL EFI Initialized");
     println(L"[ + ] Initializing heap");
     set_heap_sz(_HEAP_PAGE_ * 10);
@@ -31,7 +34,8 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable)
     print_args((string []){L"Welcome to FSL OS, ", (string)SYSTEM_USER_NAME, L"\r\n", NULL});
 
     println(L"Loading FSL CLI");
-    fsl_cli();
+
+    /* A Cursor Blinker thats way blinks way to fast rn, fuck that */
     // EFI_EVENT TimerEvent;
     // gBS->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL,
     //                 TPL_CALLBACK,
@@ -40,14 +44,38 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable)
     //                 &TimerEvent);
 
     // gBS->SetTimer(TimerEvent, TimerPeriodic, 5000000);
+    println(L"[+] RAW USB lib-style PoC");
+
+    EFI_BLOCK_IO_PROTOCOL *blk = usb_find_raw_block();
+    if(!blk) {
+        fsl_panic(L"[-] No raw USB block device found\n");
+        return;
+    }
+
+    print(L"[+] BlockSize: "), _printi(blk->Media->BlockSize), print(L"\r\n");
+    print(L"[+] LastBlock: "), _printi(blk->Media->LastBlock), print(L"\r\n");
+
+    VOID *buf = NULL;
+    EFI_STATUS st = usb_read_lba(blk, 0, 1, &buf);
+    if(EFI_ERROR(st)) {
+        fsl_panic(L"[-] Read failed\r\n");
+        return;
+    }
+
+    println(L"[+] LBA 0 dump (first 64 bytes):\n");
+    hex_dump((UINT8 *)buf, 64);
+
+    gBS->FreePool(buf);
+    
+    fsl_cli();
 }
 
 public fn read_usb_drive()
 {
-    print(L"[+] RAW USB lib-style PoC\n");
+    println(L"[+] RAW USB lib-style PoC");
 
     EFI_BLOCK_IO_PROTOCOL *blk = usb_find_raw_block();
-    if (!blk) {
+    if(!blk) {
         print(L"[-] No raw USB block device found\n");
         return;
     }
@@ -56,12 +84,12 @@ public fn read_usb_drive()
 
     VOID *buf = NULL;
     EFI_STATUS st = usb_read_lba(blk, 0, 1, &buf);
-    if (EFI_ERROR(st)) {
+    if(EFI_ERROR(st)) {
         print(L"[-] Read failed: \n");
         return;
     }
 
-    // Print(L"[+] LBA 0 dump (first 64 bytes):\n");
+    println(L"[+] LBA 0 dump (first 64 bytes):");
     hex_dump((UINT8 *)buf, 64);
 
     gBS->FreePool(buf);
@@ -93,11 +121,11 @@ public fn blink_cursor()
     /* Cursor */
     UINT64 now = rdtsc();
 
-	if ((now - last_toggle) >= BLINK_INTERVAL) {
+	if((now - last_toggle) >= BLINK_INTERVAL) {
 	    last_toggle = now;
 	    visible = !visible;
 
-	    if (visible) {
+	    if(visible) {
 	        gST->ConOut->SetCursorPosition(
 		        gST->ConOut,
 		        CursorX,

@@ -20,6 +20,7 @@ done
 nasm -f win64 boot.asm -o boot.obj
 
 
+## WINDOWS LINKER ###
 lld-link \
   /subsystem:efi_application \
   /entry:efi_main \

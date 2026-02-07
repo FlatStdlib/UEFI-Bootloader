@@ -13,18 +13,18 @@ efi_main:
 
     push rbp
     mov rbp, rsp
-    sub rsp, 32            ; shadow space (MANDATORY)
+    sub rsp, 32
 
-    mov r8, rdx         ; save SystemTable* temporarily
+    mov r8, rdx
+    mov r9, rcx
 
-    ; print message
-    mov rcx, [r8 + 0x60] ; ConOut
+    mov rcx, [r8 + 0x60]
     mov rdx, message
-    mov rax, [rcx + 0x18] ; OutputString
+    mov rax, [rcx + 0x18]
     call rax
 
-    ; call C function
-    mov rcx, r8          ; restore SystemTable* for C function
+    mov rcx, r8
+    mov rdx, r9
     call Init_FSL
 
 .hang:

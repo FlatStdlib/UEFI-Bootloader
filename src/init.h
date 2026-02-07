@@ -15,8 +15,10 @@ extern int __FSL_DEBUG__;
 #include <efilib.h>
 // #include <efiguid.h> 
 
+extern EFI_HANDLE gImage;
 extern EFI_BOOT_SERVICES *gBS;
 extern EFI_SYSTEM_TABLE *gST;
+// extern EFI_GUID gEfiBlockIoProtocolGuid;
 /*
         Built-in Types
 */
