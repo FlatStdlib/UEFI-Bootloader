@@ -12,6 +12,7 @@ for file in $FILES; do
   -fno-builtin \
   -fno-stack-protector \
   -mno-stack-arg-probe \
+  -lgnuefi -lefi \
   -I third_party_libs/gnu-efi/inc \
   -c "src/$file" -o "${file%.c}.obj"
 done

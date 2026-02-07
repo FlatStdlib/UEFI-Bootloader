@@ -13,6 +13,7 @@ extern int __FSL_DEBUG__;
 
 #include <efi.h>
 #include <efilib.h>
+// #include <efiguid.h> 
 
 extern EFI_BOOT_SERVICES *gBS;
 extern EFI_SYSTEM_TABLE *gST;
@@ -390,8 +391,16 @@ typedef struct {
         cursor_pos_t    cursor;
 } fsl_efi;
 
+extern fsl_efi *_FSLEFI_;
+
 public string get_line();
 void input_strip(const string buff, int *size);
 public fn blink_cursor();
+
+/* variable.c */
 public bool set_new_variable(const string name, const string value);
-extern fsl_efi *_FSLEFI_;
+
+/* drive_manager/reader.c */
+EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void);
+EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VOID **out_buf);
+void hex_dump(const UINT8 *buf, UINTN size);

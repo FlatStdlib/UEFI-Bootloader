@@ -10,14 +10,6 @@ u16 *SYSTEM_USER_NAME = NULL;
 public fn fsl_cli();
 __declspec(dllexport) void EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable);
 
-void ascii_to_char16(const string in, CHAR16 *out, UINTN max)
-{
-    UINTN i;
-    for (i = 0; i < max - 1 && in[i]; i++)
-        out[i] = (CHAR16)in[i];
-    out[i] = 0;
-}
-
 public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable)
 {
     SystemTable->ConOut->OutputString(SystemTable->ConOut, L"[ + ] Initializing UEFI\r\n");
@@ -48,6 +40,31 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable)
     //                 &TimerEvent);
 
     // gBS->SetTimer(TimerEvent, TimerPeriodic, 5000000);
+}
+
+public fn read_usb_drive()
+{
+    print(L"[+] RAW USB lib-style PoC\n");
+
+    EFI_BLOCK_IO_PROTOCOL *blk = usb_find_raw_block();
+    if (!blk) {
+        print(L"[-] No raw USB block device found\n");
+        return;
+    }
+
+    // println(L"[+] LastBlock: %lu\n", blk->Media->LastBlock);
+
+    VOID *buf = NULL;
+    EFI_STATUS st = usb_read_lba(blk, 0, 1, &buf);
+    if (EFI_ERROR(st)) {
+        print(L"[-] Read failed: \n");
+        return;
+    }
+
+    // Print(L"[+] LBA 0 dump (first 64 bytes):\n");
+    hex_dump((UINT8 *)buf, 64);
+
+    gBS->FreePool(buf);
 }
 
 void input_strip(const string buff, int *size)
