@@ -15,14 +15,6 @@ efi_main:
     mov rbp, rsp
     sub rsp, 32
 
-    mov r8, rdx
-    mov r9, rcx
-
-    mov rcx, [r8 + 0x60]
-    mov rdx, message
-    mov rax, [rcx + 0x18]
-    call rax
-
     mov rcx, r8
     mov rdx, r9
     call Init_FSL
@@ -30,7 +22,3 @@ efi_main:
 .hang:
     hlt
     jmp .hang
-
-section .data
-message:
-    dw 'U','E','F','I',' ','B','O','O','T',' ','O','K',13,10,0
