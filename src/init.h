@@ -395,6 +395,7 @@ typedef struct {
 
 extern fsl_efi *_FSLEFI_;
 
+public fn read_usb_drive();
 public string get_line();
 void input_strip(const string buff, int *size);
 public fn blink_cursor();

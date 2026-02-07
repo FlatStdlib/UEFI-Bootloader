@@ -78,13 +78,15 @@ EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VO
 
 void hex_dump(const UINT8 *buf, UINTN size)
 {
-    for(UINTN i = 0; i < size; i++) {
+    for(UINTN i = 0, nl = 0; i < size; i++) {
         u16 BUFF[3];
         byte_to_hex(buf[i], BUFF);
         print(BUFF);
         print(L", ");
-        if ((i + 1) % 16 == 0)
+        if (i == nl + 30) {
+            i += 30;
             println(NULL);
+        }
     }
 
     if(size % 16)
