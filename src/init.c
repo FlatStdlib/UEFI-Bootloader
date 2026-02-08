@@ -1,4 +1,4 @@
-#include "init.h"
+#include "fsl_efi.h"
 
 EFI_BOOT_SERVICES *gBS;
 EFI_SYSTEM_TABLE *gST;
@@ -86,7 +86,7 @@ public fn read_usb_drive()
     gBS->FreePool(buff);
 }
 
-void input_strip(const string buff, int *size)
+public fn input_strip(const string buff, int *size)
 {
     if(!buff)
         return;

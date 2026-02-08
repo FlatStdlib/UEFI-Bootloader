@@ -11,14 +11,6 @@ extern int __FSL_DEBUG__;
         #define _FSL_ALLOCATOR_H
 #endif
 
-#include <efi.h>
-#include <efilib.h>
-// #include <efiguid.h> 
-
-extern EFI_HANDLE gImage;
-extern EFI_BOOT_SERVICES *gBS;
-extern EFI_SYSTEM_TABLE *gST;
-// extern EFI_GUID gEfiBlockIoProtocolGuid;
 /*
         Built-in Types
 */
@@ -79,13 +71,6 @@ extern u16                      _OUTPUT_[1024];
         #define nullptr_t ((void *)0)
         #define emptyptr_t ((void *)-1)
 #endif
-
-typedef struct {
-    int x, y;
-} _cordination;
-
-typedef _cordination position;
-typedef _cordination cursor_pos_t;
 
 /*
     @DOC
@@ -384,26 +369,3 @@ typedef _cordination cursor_pos_t;
         public fn		field_destruct(field_t field);      
         public fn       map_destruct(map_t map);
 #endif
-
-
-typedef struct {
-		string			dick;
-        map_t           variables;
-        i32             var_len;
-        cursor_pos_t    cursor;
-} fsl_efi;
-
-extern fsl_efi *_FSLEFI_;
-
-public fn read_usb_drive();
-public string get_line();
-void input_strip(const string buff, int *size);
-public fn blink_cursor();
-
-/* variable.c */
-public bool set_new_variable(const string name, const string value);
-
-/* drive_manager/reader.c */
-EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void);
-EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VOID **out_buf);
-void hex_dump(const UINT8 *buf, UINTN size);

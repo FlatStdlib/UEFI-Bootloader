@@ -1,12 +1,12 @@
-#include "init.h"
+#include "../init.h"
 
-// Manually define the Block IO GUID
+/* THIS IS SUPPOSEDLY PROVIDED TO YOU BUT W.E */
 EFI_GUID gEfiBlockIoProtocolGuid = {
     0x964e5b21, 0x6459, 0x11d2,
     {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}
 };
 
-EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void)
+public EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void)
 {
     EFI_STATUS st;
     EFI_HANDLE *handles = NULL;
@@ -49,7 +49,7 @@ EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void)
     return NULL;
 }
 
-EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VOID **out_buf)
+public EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VOID **out_buf)
 {
     if(!blk || !out_buf || blocks == 0)
         return EFI_INVALID_PARAMETER;
@@ -76,7 +76,7 @@ EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VO
     return st;
 }
 
-void hex_dump(const UINT8 *buf, UINTN size)
+public fn hex_dump(const UINT8 *buf, UINTN size)
 {
     for(UINTN i = 0, nl = 0; i < size; i++) {
         u16 BUFF[3];
