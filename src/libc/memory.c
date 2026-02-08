@@ -1,4 +1,4 @@
-#include "init.h"
+#include "efi_libc.h"
 
 public fn memzero(any p, size_t size)
 {

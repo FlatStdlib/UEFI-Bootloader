@@ -1,4 +1,4 @@
-#include "../init.h"
+#include "efi_libc.h"
 
 #define _HEAP_PAGE_SZ_  4096
 int _HEAP_MULTIPLER_    = 2;

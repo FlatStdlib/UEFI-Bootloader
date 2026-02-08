@@ -8,6 +8,14 @@ u16 *SYSTEM_USER_NAME = NULL;
 #define CPU_HZ 3000000000ULL
 #define BLINK_INTERVAL (CPU_HZ)
 
+CHAR16 BANNER[] = L"These commands are provided by the OS!\r\n"
+                L"     Name          Description\r\n"
+                L"__________________________________________\r\n"
+                L"     help          List of help commands\r\n"
+                L"     set           Set a system variable\r\n"
+                L"     echo          Echo a system variable\r\n"
+                L"     listdr        List all I/O Drives\r\n";
+
 public fn fsl_cli();
 __declspec(dllexport) public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle);
 
@@ -58,32 +66,25 @@ public fn read_usb_drive()
         fsl_panic(L"[-] No raw USB block device found\n");
         return;
     }
+    
+    UINT64 total_bytes = blk->Media->BlockSize * ((UINT64)blk->Media->LastBlock + 1);
+    UINT64 size_kb = total_bytes / 1024;
+    UINT64 size_mb = total_bytes / (1024 * 1024);
+    double size_gb = total_bytes / (1024.0 * 1024.0 * 1024.0);
+    print(L"[+] Storage Size: "), PrintDouble(size_gb), print(L"\r\n");
 
-    print(L"[+] BlockSize: "), _printi(blk->Media->BlockSize), print(L"\r\n");
-    print(L"[+] LastBlock: "), _printi(blk->Media->LastBlock), print(L"\r\n");
+    /* Debug */
+    // VOID *buf = NULL;
+    // EFI_STATUS st = usb_read_lba(blk, 0, 1, &buf);
+    // if(EFI_ERROR(st)) {
+    //     fsl_panic(L"[-] Read failed\r\n");
+    //     return;
+    // }
 
-    VOID *buf = NULL;
-    EFI_STATUS st = usb_read_lba(blk, 0, 1, &buf);
-    if(EFI_ERROR(st)) {
-        fsl_panic(L"[-] Read failed\r\n");
-        return;
-    }
+    // println(L"[+] LBA 0 dump (first 64 bytes):\n");
+    // hex_dump((UINT8 *)buf, 64);
 
-    println(L"[+] LBA 0 dump (first 64 bytes):\n");
-    hex_dump((UINT8 *)buf, 64);
-
-    VOID *buff = NULL;
-    EFI_STATUS sst = usb_read_lba(blk, 1, 1, &buff);
-    if(EFI_ERROR(st)) {
-        fsl_panic(L"[-] Read failed\r\n");
-        return;
-    }
-
-    println(L"[+] LBA 1 dump (first 64 bytes):\n");
-    hex_dump((UINT8 *)buff, 2048);
-
-    gBS->FreePool(buf);
-    gBS->FreePool(buff);
+    // gBS->FreePool(buf);
 }
 
 public fn input_strip(const string buff, int *size)
@@ -194,7 +195,7 @@ public fn fsl_cli()
 			if(len > 0 && Key.UnicodeChar == L'\r')
             {
                 println(L"\r\n");
-                // input_strip(CMD, &len);
+                input_strip(CMD, &len);
 
                 int argc = 0;
                 sArr args = NULL;
@@ -202,6 +203,8 @@ public fn fsl_cli()
                 if(mem_cmp(CMD, L"help", 4))
                 {
                     println_color_text(EFI_WHITE, EFI_BLACK, L"This help command is working dawg");
+                } else if(mem_cmp(CMD, L"listdr", 6)) {
+                    list_all_storage_drives();
                 } else if(find_string(CMD, L"set") > -1)
                 {
                     args = split_string(CMD, ' ', &argc);

@@ -1,4 +1,4 @@
-#include "../init.h"
+#include "../fsl_efi.h"
 
 /* THIS IS SUPPOSEDLY PROVIDED TO YOU BUT W.E */
 EFI_GUID gEfiBlockIoProtocolGuid = {
@@ -6,13 +6,52 @@ EFI_GUID gEfiBlockIoProtocolGuid = {
     {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}
 };
 
-public EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void)
+public fn list_all_storage_drives()
 {
     EFI_STATUS st;
     EFI_HANDLE *handles = NULL;
     UINTN count = 0;
 
     println(L"[+] Enumerating handles for Block IO...");
+    st = gBS->LocateHandleBuffer(
+        ByProtocol,
+        &gEfiBlockIoProtocolGuid,
+        NULL,
+        &count,
+        &handles
+    );
+
+    if(EFI_ERROR(st) || count == 0) {
+        println(L"[-] No handles found");
+    }
+
+    for(UINTN i = 0; i < count; i++) {
+        EFI_BLOCK_IO_PROTOCOL *blk = NULL;
+
+        st = gBS->HandleProtocol(
+            handles[i],
+            &gEfiBlockIoProtocolGuid,
+            (VOID **)&blk
+        );
+
+        if(EFI_ERROR(st) || !blk || !blk->Media)
+            continue;
+
+        UINT64 total_bytes = blk->Media->BlockSize * ((UINT64)blk->Media->LastBlock + 1);
+        UINT64 size_kb = total_bytes / 1024;
+        UINT64 size_mb = total_bytes / (1024 * 1024);
+        double size_gb = total_bytes / (1024.0 * 1024.0 * 1024.0);
+        print(L"[ "), PrintU32(i), print(L" ]: BlockSize -> "), PrintDouble(size_gb);
+        println(NULL);
+    }
+}
+
+public EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void)
+{
+    EFI_STATUS st;
+    EFI_HANDLE *handles = NULL;
+    UINTN count = 0;
+
     st = gBS->LocateHandleBuffer(
         ByProtocol,
         &gEfiBlockIoProtocolGuid,
@@ -38,14 +77,10 @@ public EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void)
         if(EFI_ERROR(st) || !blk || !blk->Media)
             continue;
 
-        if(blk->Media->MediaPresent && blk->Media->RemovableMedia && !blk->Media->LogicalPartition) {
-
-            println(L"[+] Found removable Block IO device");
+        if(blk->Media->MediaPresent && blk->Media->RemovableMedia && !blk->Media->LogicalPartition)
             return blk;
-        }
     }
-
-    println(L"[-] No removable Block IO device found");
+    
     return NULL;
 }
 

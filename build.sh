@@ -1,10 +1,12 @@
 mkdir -p third_party_libs
 
-FILES=$(cd src && ls -1 *.c; cd ..)
+FSL_EFI_FILES=$(cd src && ls -1 *.c; cd ..)
+EFI_LIBC_FILES=$(cd src/libc && ls -1 *.c && cd ..)
+EFI_FS_FILES=$(cd src/fs && ls -1 *.c && cd ..)
 PWD=$(pwd)
 
 # Compile to Object File(s) #
-for file in $FILES; do 
+for file in $FSL_EFI_FILES; do 
   x86_64-w64-mingw32-gcc \
   -ffreestanding \
   -fshort-wchar \
@@ -20,7 +22,7 @@ done
 nasm -f win64 boot.asm -o boot.obj
 
 
-## WINDOWS LINKER ###
+### WINDOWS LINKER ###
 lld-link \
   /subsystem:efi_application \
   /entry:efi_main \

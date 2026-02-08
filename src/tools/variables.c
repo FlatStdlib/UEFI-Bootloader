@@ -1,4 +1,4 @@
-#include "init.h"
+#include "../fsl_efi.h"
 
 public bool set_new_variable(const string name, const string value)
 {

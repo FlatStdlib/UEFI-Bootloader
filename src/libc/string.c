@@ -1,4 +1,4 @@
-#include "init.h"
+#include "efi_libc.h"
 
 public fn ptr_to_str(ptr p, string out)
 {

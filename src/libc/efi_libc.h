@@ -1,5 +1,7 @@
 #pragma once
 
+#include <efi.h>
+#include <efilib.h>
 extern int __FSL_DEBUG__;
 #ifndef _FSL_EFI_H
         #define _FSL_EFI_H
@@ -162,6 +164,8 @@ extern u16                      _OUTPUT_[1024];
 	public fn 		print_color_text(int fg, int bg, const string buffer);
 	public fn 		println_color_text(int fg, int bg, const string buffer);
 	public fn 		print_color_text_args(int fg, int bg, string *arr);
+	public fn 		PrintU32(UINT32 val);
+	public fn 		PrintDouble(double val);
 	/*
 		@DOC
 			@param buff		buffer to output

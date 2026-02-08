@@ -1,11 +1,12 @@
 #pragma once
 
-#ifndef _FSL_EFI_FS_H
-#define _FSL_EFI_FS_H
+#include "../libc/efi_libc.h"
+/* [ System Variables ] variable.c */
 
-#include <efi.h>
-#include <efilib.h>
-
+/*
+*   [ HDD / USB Storage Drive Manager ]
+*   Path: ./fs/*
+*/
 typedef struct
 {
     EFI_BLOCK_IO_PROTOCOL   Handle;
@@ -22,4 +23,7 @@ typedef struct
     int len;
 } fs_t;
 
-#endif
+public fn list_all_storage_drives();
+public EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void);
+public EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VOID **out_buf);
+public fn hex_dump(const UINT8 *buf, UINTN size);

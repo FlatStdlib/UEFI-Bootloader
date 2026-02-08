@@ -1,8 +1,7 @@
 #pragma once
 
-#include <efi.h>
-#include <efilib.h>
 #include "libc/efi_libc.h"
+#include "fs/fs.h"
 
 #ifndef _FSL_EFI_H
     #define _FSL_EFI_H
@@ -20,10 +19,31 @@ typedef struct {
 typedef _cordination position;
 typedef _cordination cursor_pos_t;
 
+typedef struct
+{
+    string  name;
+    string  cmd;
+    i32     argc;
+    string  err;
+} _cmd;
+
+typedef _cmd *cmd_t;
+typedef _cmd **cmds_t;
+
 typedef struct {
-        map_t           variables;
-        i32             var_len;
-        cursor_pos_t    cursor;
+    /* Main HDD/USB FS */
+    drive_t         hdd_handle;
+
+    /* CLI Stuff */
+    cursor_pos_t    cursor;
+
+    /* System Variables */
+    map_t           variables;
+    i32             var_len;
+
+    /* Commands */
+    cmds_t          commands;
+    i32             cmd_len;
 } fsl_efi;
 
 extern fsl_efi *_FSLEFI_;
@@ -34,33 +54,3 @@ private inline UINT64 rdtsc(void);
 public fn blink_cursor();
 public string  get_line(const string buffer);
 public fn fsl_cli();
-
-/* [ System Variables ] variable.c */
-
-/*
-*   [ HDD / USB Storage Drive Manager ]
-*   Path: ./fs/*
-*/
-#ifdef _FSL_EFI_FS_H
-
-typedef struct
-{
-    EFI_BLOCK_IO_PROTOCOL   Handle;
-    i32                     DriveSize;
-} _storage_drive;
-
-typedef _storage_drive storage_Drive;
-typedef _storage_drive *drive_t;
-typedef _storage_drive **drives_t;
-
-typedef struct
-{
-    drives_t drives;
-    int len;
-} fs_t;
-
-public EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void);
-public EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VOID **out_buf);
-public fn hex_dump(const UINT8 *buf, UINTN size);
-
-#endif

@@ -1,4 +1,4 @@
-#include "init.h"
+#include "efi_libc.h"
 
 public map_t init_map(void)
 {
