@@ -130,7 +130,7 @@ public fn PrintU32(UINT32 val)
     gST->ConOut->OutputString(gST->ConOut, buf);
 }
 
-public void PrintDouble(double val)
+public fn PrintDouble(double val)
 {
     CHAR16 buf[32];
     int i = 0;
