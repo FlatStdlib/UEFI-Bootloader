@@ -41,4 +41,4 @@ chk = subprocess.getoutput("""lld-link \
 if chk:
     print(chk)
 
-subprocess.getoutput("rm *.obj # BOOTX64.lib")
+subprocess.getoutput("rm *.obj BOOTX64.lib")
