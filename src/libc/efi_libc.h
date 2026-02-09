@@ -132,7 +132,7 @@ extern u16                      _OUTPUT_[1024];
 			@return: n/a
 			@note: Output char to stdout
 	*/
-	public fn		printc(const char ch);
+	public fn		printc(const u16 ch);
 
 	/*
 		@DOC
@@ -165,6 +165,7 @@ extern u16                      _OUTPUT_[1024];
 	public fn 		println_color_text(int fg, int bg, const string buffer);
 	public fn 		print_color_text_args(int fg, int bg, string *arr);
 	public fn 		PrintU32(UINT32 val);
+	public fn 		PrintU64(UINT64 val);
 	public fn 		PrintDouble(double val);
 	/*
 		@DOC

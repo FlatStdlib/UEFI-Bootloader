@@ -95,20 +95,22 @@ public EFI_STATUS usb_read_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blo
     if(EFI_ERROR(st))
         return st;
 
-    st = blk->ReadBlocks(
-        blk,
-        blk->Media->MediaId,
-        lba,
-        size,
-        *out_buf
-    );
-
+    st = blk->ReadBlocks(blk, blk->Media->MediaId, lba, size, *out_buf);
     if(EFI_ERROR(st)) {
         gBS->FreePool(*out_buf);
         *out_buf = NULL;
     }
 
     return st;
+}
+
+EFI_STATUS usb_write_lba(EFI_BLOCK_IO_PROTOCOL *blk, UINT64 lba, UINTN blocks, VOID *in_buf)
+{
+    if(!blk || !in_buf || blocks == 0)
+        return EFI_INVALID_PARAMETER;
+
+    UINTN size = blocks * blk->Media->BlockSize;
+    return blk->WriteBlocks(blk, blk->Media->MediaId, lba, size, in_buf);
 }
 
 public fn hex_dump(const UINT8 *buf, UINTN size)

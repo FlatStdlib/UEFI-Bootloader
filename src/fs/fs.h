@@ -9,19 +9,28 @@
 */
 typedef struct
 {
-    EFI_BLOCK_IO_PROTOCOL   Handle;
-    i32                     DriveSize;
-} _storage_drive;
+    EFI_BLOCK_IO_PROTOCOL           *Handle;
+    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *fs;
+    EFI_FILE_PROTOCOL               *root;
+    i64                             Blocks;
+    i64                             BlockSize;
+    i64                             DriveSize;
+} _drive;
 
-typedef _storage_drive storage_Drive;
-typedef _storage_drive *drive_t;
-typedef _storage_drive **drives_t;
+typedef _drive *fs_t;
+typedef _drive storage_Drive;
+typedef _drive *drive_t;
+typedef _drive **drives_t;
 
 typedef struct
 {
     drives_t drives;
     int len;
-} fs_t;
+} _drives;
+
+public drive_t init_fs();
+public string list_dir(drive_t drive);
+public fn write_to_file(drive_t drive, CHAR16 *filename, u8 *data, UINTN size);
 
 public fn list_all_storage_drives();
 public EFI_BLOCK_IO_PROTOCOL *usb_find_raw_block(void);

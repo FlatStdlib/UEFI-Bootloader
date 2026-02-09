@@ -6,7 +6,7 @@ u16 _OUTPUT_[1024] = {0};
 public fn toggle_debug_mode()
 { __FSL_DEBUG__ = __FSL_DEBUG__ ? 0 : 1; }
 
-public fn printc(const char ch)
+public fn printc(const u16 ch)
 {
 	u16 BUFF[2] = {0};
 	BUFF[0] = ch;
@@ -120,7 +120,6 @@ public fn PrintU32(UINT32 val)
     }
     buf[i] = 0;
 
-    // reverse string
     for (int j = 0; j < i/2; j++) {
         CHAR16 tmp = buf[j];
         buf[j] = buf[i-1-j];
@@ -129,6 +128,33 @@ public fn PrintU32(UINT32 val)
 
     gST->ConOut->OutputString(gST->ConOut, buf);
 }
+
+public fn PrintU64(UINT64 val)
+{
+    CHAR16 buf[21];
+    int i = 0;
+
+    if (val == 0) {
+        buf[i++] = L'0';
+    }
+
+    while (val > 0) {
+        buf[i++] = L'0' + (val % 10);
+        val /= 10;
+    }
+
+    buf[i] = 0;
+
+    // Reverse the string
+    for (int j = 0; j < i / 2; j++) {
+        CHAR16 tmp = buf[j];
+        buf[j] = buf[i - 1 - j];
+        buf[i - 1 - j] = tmp;
+    }
+
+    gST->ConOut->OutputString(gST->ConOut, buf);
+}
+
 
 public fn PrintDouble(double val)
 {
@@ -221,5 +247,5 @@ public fn __fsl_panic(string msg, string file, int line)
 	if(__FSL_DEBUG__)
 		print(file), print(L":"), _printi(line), print(L" -> ");
 
-	print_color_text(EFI_RED, EFI_BLACK, L"\x1b[31merror\x1b[39m: "), println(msg);
+	print_color_text(EFI_RED, EFI_BLACK, L"error: "), println(msg);
 }

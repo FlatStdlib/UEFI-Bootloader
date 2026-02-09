@@ -24,24 +24,31 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle)
     gST = SystemTable;
     gImage = ImageHandle;
     gBS = SystemTable->BootServices;
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"[ + ] Initializing UEFI\r\n");
-    println(L"[ + ] FSL EFI Initialized");
-    println(L"[ + ] Initializing heap");
+    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"[ + ] Initializing UEFI.....\r\n");
+    println(L"[ + ] FSL EFI Initialized....");
+    println(L"[ + ] Initializing heap....");
     set_heap_sz(_HEAP_PAGE_ * 10);
     init_mem();
     _FSLEFI_ = allocate(0, sizeof(fsl_efi) + 1);
     _FSLEFI_->variables = init_map();
     _FSLEFI_->var_len = 0;
     _FSLEFI_->cursor = (_cordination){0};
+
+    println(L"[ + ] Initializing main drive....");
+    _FSLEFI_->hdd_handle = init_fs();
+    if(!_FSLEFI_->hdd_handle)
+        fsl_panic(L"Unable to fetch main drive...!");
+
+    // write_to_file(_FSLEFI_->hdd_handle, L"testing.txt", "Hello write from UEFI!", 22);
     
-    println(L"[ + ] Heap Initialized");
+    println(L"[ + ] Heap Initialized....\n");
     SYSTEM_USER_NAME = get_line(L"Username: ");
     if(!SYSTEM_USER_NAME)
         return;
 
-    print_args((string []){L"Welcome to FSL OS, ", (string)SYSTEM_USER_NAME, L"\r\n", NULL});
+    print_args((string []){L"\r\nWelcome to FSL OS, ", (string)SYSTEM_USER_NAME, L"\r\n", NULL});
 
-    println(L"Loading FSL CLI");
+    println(L"[ + ] Loading FSL CLI.....");
 
     /* A Cursor Blinker thats way blinks way to fast rn, fuck that */
     // EFI_EVENT TimerEvent;
@@ -53,39 +60,38 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle)
 
     // gBS->SetTimer(TimerEvent, TimerPeriodic, 5000000);
     
-    read_usb_drive();
     fsl_cli();
 }
 
-public fn read_usb_drive()
-{
-    println(L"[+] USB Reading");
+// public fn read_usb_drive()
+// {
+//     println(L"[ + ] USB Reading");
 
-    EFI_BLOCK_IO_PROTOCOL *blk = usb_find_raw_block();
-    if(!blk) {
-        fsl_panic(L"[-] No raw USB block device found\n");
-        return;
-    }
+//     EFI_BLOCK_IO_PROTOCOL *blk = usb_find_raw_block();
+//     if(!blk) {
+//         fsl_panic(L"[ - ] No raw USB block device found\n");
+//         return;
+//     }
     
-    UINT64 total_bytes = blk->Media->BlockSize * ((UINT64)blk->Media->LastBlock + 1);
-    UINT64 size_kb = total_bytes / 1024;
-    UINT64 size_mb = total_bytes / (1024 * 1024);
-    double size_gb = total_bytes / (1024.0 * 1024.0 * 1024.0);
-    print(L"[+] Storage Size: "), PrintDouble(size_gb), print(L"\r\n");
+//     UINT64 total_bytes = blk->Media->BlockSize * ((UINT64)blk->Media->LastBlock + 1);
+//     UINT64 size_kb = total_bytes / 1024;
+//     UINT64 size_mb = total_bytes / (1024 * 1024);
+//     double size_gb = total_bytes / (1024.0 * 1024.0 * 1024.0);
+//     print(L"[ + ] Storage Size: "), PrintDouble(size_gb), print(L"\r\n");
 
-    /* Debug */
-    // VOID *buf = NULL;
-    // EFI_STATUS st = usb_read_lba(blk, 0, 1, &buf);
-    // if(EFI_ERROR(st)) {
-    //     fsl_panic(L"[-] Read failed\r\n");
-    //     return;
-    // }
+//     /* Debug */
+//     // VOID *buf = NULL;
+//     // EFI_STATUS st = usb_read_lba(blk, 0, 1, &buf);
+//     // if(EFI_ERROR(st)) {
+//     //     fsl_panic(L"[-] Read failed\r\n");
+//     //     return;
+//     // }
 
-    // println(L"[+] LBA 0 dump (first 64 bytes):\n");
-    // hex_dump((UINT8 *)buf, 64);
+//     // println(L"[+] LBA 0 dump (first 64 bytes):\n");
+//     // hex_dump((UINT8 *)buf, 64);
 
-    // gBS->FreePool(buf);
-}
+//     // gBS->FreePool(buf);
+// }
 
 public fn input_strip(const string buff, int *size)
 {
@@ -137,7 +143,7 @@ public fn blink_cursor()
 
 public string get_line(const string buffer)
 {
-    println(buffer);
+    print(buffer);
     EFI_INPUT_KEY Key;
     u16 *buff = allocate(0, 1024);
     int len = 0;
@@ -156,6 +162,7 @@ public string get_line(const string buffer)
             if(Key.UnicodeChar != 0 && is_ascii(Key.UnicodeChar))
             {
 	            buff[len++] = Key.UnicodeChar;
+                printc(Key.UnicodeChar);
 			}
         }
     }
@@ -192,7 +199,7 @@ public fn fsl_cli()
 			if((Key.UnicodeChar == 0x1B || Key.UnicodeChar == L'a') && Key.ScanCode == SCAN_ESC)
                 println(L"ESC key detected");
 
-			if(len > 0 && Key.UnicodeChar == L'\r')
+			if(len > 0 && (Key.UnicodeChar == L'\r' || Key.UnicodeChar == L'\n'))
             {
                 println(L"\r\n");
                 input_strip(CMD, &len);
@@ -202,8 +209,14 @@ public fn fsl_cli()
 
                 if(mem_cmp(CMD, L"help", 4))
                 {
-                    println_color_text(EFI_WHITE, EFI_BLACK, L"This help command is working dawg");
-                } else if(mem_cmp(CMD, L"listdr", 6)) {
+                    println_color_text(EFI_WHITE, EFI_BLACK, BANNER);
+                } else if(mem_cmp(CMD, L"ls", 2)) {
+                    println(L"Files:");
+                    list_dir(_FSLEFI_->hdd_handle);
+                } else if(mem_cmp(CMD, L"hdd", 3)) {
+                    print(L"Main Drive Size: "), PrintU32(_FSLEFI_->hdd_handle->DriveSize), println(NULL);
+                } else if(mem_cmp(CMD, L"drives", 6)) {
+                    println(L"Drives:");
                     list_all_storage_drives();
                 } else if(find_string(CMD, L"set") > -1)
                 {
