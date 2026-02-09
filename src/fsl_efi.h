@@ -16,6 +16,11 @@ typedef struct {
     int x, y;
 } _cordination;
 
+typedef struct {
+    int r, g, b;
+} _rgb;
+
+typedef _cordination screen_size;
 typedef _cordination position;
 typedef _cordination cursor_pos_t;
 
@@ -34,6 +39,9 @@ typedef struct {
     /* Main HDD/USB FS */
     drive_t         hdd_handle;
 
+    u32             *framebuffer;
+    screen_size     resolution;
+
     /* CLI Stuff */
     cursor_pos_t    cursor;
 
@@ -49,6 +57,9 @@ typedef struct {
 extern fsl_efi *_FSLEFI_;
 public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle);
 public fn switch_to_gui_mode();
+public fn clear_screen(fsl_efi *fsl, uint32_t color);
+void draw_char(fsl_efi *fsl, int x, int y, uint8_t *bitmap, uint32_t color);
+void draw_pixel(fsl_efi *fsl, int x, int y, uint32_t color);
 public fn read_usb_drive();
 public fn input_strip(const string buff, int *size);
 private inline UINT64 rdtsc(void);

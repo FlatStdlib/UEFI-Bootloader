@@ -8,6 +8,18 @@ u16 *SYSTEM_USER_NAME = NULL;
 #define CPU_HZ 3000000000ULL
 #define BLINK_INTERVAL (CPU_HZ)
 
+/* Some basic font */
+uint8_t font_A[8] = {
+    0b00111100,
+    0b01000010,
+    0b01000010,
+    0b01111110,
+    0b01000010,
+    0b01000010,
+    0b01000010,
+    0b00000000
+};
+
 CHAR16 BANNER[] = L"These commands are provided by the OS!\r\n"
                 L"     Name          Description\r\n"
                 L"__________________________________________\r\n"
@@ -21,19 +33,20 @@ __declspec(dllexport) public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, E
 
 public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle)
 {
+    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"[ + ] Initializing UEFI.....\r\n");
     gST = SystemTable;
     gImage = ImageHandle;
     gBS = SystemTable->BootServices;
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, L"[ + ] Initializing UEFI.....\r\n");
-    println(L"[ + ] FSL EFI Initialized....");
-    println(L"[ + ] Initializing heap....");
     set_heap_sz(_HEAP_PAGE_ * 10);
     init_mem();
     _FSLEFI_ = allocate(0, sizeof(fsl_efi) + 1);
     _FSLEFI_->variables = init_map();
     _FSLEFI_->var_len = 0;
     _FSLEFI_->cursor = (_cordination){0};
-
+    switch_to_gui_mode(_FSLEFI_);
+    
+    println(L"[ + ] FSL EFI Initialized....");
+    print(L"[ + ] Heap initialized with "), PrintU32(_HEAP_PAGE_ * 10), println(L" bytes...");
     println(L"[ + ] Initializing main drive....");
     _FSLEFI_->hdd_handle = init_fs();
     if(!_FSLEFI_->hdd_handle)
@@ -41,7 +54,6 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle)
 
     // write_to_file(_FSLEFI_->hdd_handle, L"testing.txt", "Hello write from UEFI!", 22);
     
-    println(L"[ + ] Heap Initialized....\n");
     SYSTEM_USER_NAME = get_line(L"Username: ");
     if(!SYSTEM_USER_NAME)
         return;
@@ -59,12 +71,25 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle)
     //                 &TimerEvent);
 
     // gBS->SetTimer(TimerEvent, TimerPeriodic, 5000000);
+    clear_screen(_FSLEFI_, 0x00000000);
     
-    switch_to_gui_mode();
-    fsl_cli();
+    /* Just some top bar shit */
+    for(int y = 0; y < 30; y++)
+        for(int x = 0; x < _FSLEFI_->resolution.x; x++)
+            draw_pixel(_FSLEFI_, x, y, 0x00211832);
+            
+    draw_char(_FSLEFI_, 50, 50, font_A, 0x00FF0000);
+    // fsl_cli();
 }
 
-public fn switch_to_gui_mode()
+public fn clear_screen(fsl_efi *fsl, uint32_t color)
+{
+    UINTN pixels = fsl->resolution.x * fsl->resolution.y;
+    for(UINTN i = 0; i < pixels; i++)
+        fsl->framebuffer[i] = color;
+}
+
+public fn switch_to_gui_mode(fsl_efi *fsl)
 {
     EFI_GUID gEfiGraphicsOutputProtocolGuid =
     { 0x9042a9de, 0x23dc, 0x4a38,
@@ -78,20 +103,19 @@ public fn switch_to_gui_mode()
         (VOID **)&Gop
     );
 
-    if (EFI_ERROR(Status)) {
+    if(EFI_ERROR(Status)) {
         fsl_panic(L"GOP not found");
         return;
     }
 
-    // Pick the highest resolution mode
     UINT32 BestMode = 0;
     UINTN MaxPixels = 0;
 
-    for (UINT32 i = 0; i < Gop->Mode->MaxMode; i++) {
+    for(UINT32 i = 0; i < Gop->Mode->MaxMode; i++) {
         EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
         UINTN Size;
 
-        if (!EFI_ERROR(Gop->QueryMode(Gop, i, &Size, &Info))) {
+        if(!EFI_ERROR(Gop->QueryMode(Gop, i, &Size, &Info))) {
             UINTN Pixels = Info->HorizontalResolution * Info->VerticalResolution;
             if (Pixels > MaxPixels) {
                 MaxPixels = Pixels;
@@ -102,17 +126,43 @@ public fn switch_to_gui_mode()
 
     Gop->SetMode(Gop, BestMode);
 
-    // Clear screen (black)
     UINT32 *fb = (UINT32 *)Gop->Mode->FrameBufferBase;
+    fsl->framebuffer = fb;
     UINTN pixels = Gop->Mode->FrameBufferSize / 4;
 
-    for (UINTN i = 0; i < pixels; i++)
+    for(UINTN i = 0; i < pixels; i++)
         fb[i] = 0x00000000;
 
-    println(L"GOP enabled:"),
-    PrintU32(Gop->Mode->Info->HorizontalResolution),
+    print(L"GOP Enabled, Resolution Size: "),
+    PrintU32(Gop->Mode->Info->HorizontalResolution), print(L":"),
     PrintU32(Gop->Mode->Info->VerticalResolution), println(NULL);
-    println(L"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    print(L"RGB Format: "), PrintU32(Gop->Mode->Info->PixelFormat), println(NULL);
+    fsl->resolution = (screen_size){ 
+        .x = Gop->Mode->Info->HorizontalResolution,
+        .y = Gop->Mode->Info->VerticalResolution
+    };
+
+    gST->ConOut->EnableCursor(gST->ConOut, FALSE);
+    gST->ConOut->ClearScreen(gST->ConOut);   
+}
+
+void draw_char(fsl_efi *fsl, int x, int y, uint8_t *bitmap, uint32_t color) {
+    for(int row = 0; row < 8; row++) {
+        for(int col = 0; col < 8; col++) {
+            if(bitmap[row] & (1 << (7 - col)))
+                draw_pixel(fsl, x + col, y + row, color);
+        }
+    }
+}
+
+void draw_big_pixel(fsl_efi *fsl, int x, int y, uint32_t color, int scale) {
+    for(int dy = 0; dy < scale; dy++)
+        for(int dx = 0; dx < scale; dx++)
+            draw_pixel(fsl, x*scale + dx, y*scale + dy, color);
+}
+
+void draw_pixel(fsl_efi *fsl, int x, int y, uint32_t color) {
+    fsl->framebuffer[y * fsl->resolution.x + x] = color;
 }
 
 // public fn read_usb_drive()

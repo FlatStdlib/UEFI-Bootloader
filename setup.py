@@ -34,11 +34,24 @@ chk = subprocess.getoutput("""lld-link \
     /subsystem:efi_application \
     /entry:efi_main \
     /nodefaultlib \
-    /out:BOOTX64.EFI \
+    /out:build/BOOTX64.EFI \
     *.obj"""
 )
 
 if chk:
     print(chk)
 
-subprocess.getoutput("rm *.obj BOOTX64.lib")
+subprocess.getoutput("rm *.obj build/BOOTX64.lib")
+
+"""
+xorriso -as mkisofs \
+  -iso-level 3 \
+  -o output.iso \
+  -full-iso9660-filenames \
+  -volid "MY_EFI_ISO" \
+  -eltorito-alt-boot \
+  -e EFI/BOOT/BOOTX64.EFI \
+  -no-emul-boot \
+  -isohybrid-gpt-basdat \
+  ISO_ROOT/
+"""
