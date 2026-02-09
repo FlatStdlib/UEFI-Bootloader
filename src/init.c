@@ -60,7 +60,59 @@ public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle)
 
     // gBS->SetTimer(TimerEvent, TimerPeriodic, 5000000);
     
+    switch_to_gui_mode();
     fsl_cli();
+}
+
+public fn switch_to_gui_mode()
+{
+    EFI_GUID gEfiGraphicsOutputProtocolGuid =
+    { 0x9042a9de, 0x23dc, 0x4a38,
+      { 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a } };
+    EFI_STATUS Status;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
+
+    Status = gBS->LocateProtocol(
+        &gEfiGraphicsOutputProtocolGuid,
+        NULL,
+        (VOID **)&Gop
+    );
+
+    if (EFI_ERROR(Status)) {
+        fsl_panic(L"GOP not found");
+        return;
+    }
+
+    // Pick the highest resolution mode
+    UINT32 BestMode = 0;
+    UINTN MaxPixels = 0;
+
+    for (UINT32 i = 0; i < Gop->Mode->MaxMode; i++) {
+        EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
+        UINTN Size;
+
+        if (!EFI_ERROR(Gop->QueryMode(Gop, i, &Size, &Info))) {
+            UINTN Pixels = Info->HorizontalResolution * Info->VerticalResolution;
+            if (Pixels > MaxPixels) {
+                MaxPixels = Pixels;
+                BestMode = i;
+            }
+        }
+    }
+
+    Gop->SetMode(Gop, BestMode);
+
+    // Clear screen (black)
+    UINT32 *fb = (UINT32 *)Gop->Mode->FrameBufferBase;
+    UINTN pixels = Gop->Mode->FrameBufferSize / 4;
+
+    for (UINTN i = 0; i < pixels; i++)
+        fb[i] = 0x00000000;
+
+    println(L"GOP enabled:"),
+    PrintU32(Gop->Mode->Info->HorizontalResolution),
+    PrintU32(Gop->Mode->Info->VerticalResolution), println(NULL);
+    println(L"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 }
 
 // public fn read_usb_drive()

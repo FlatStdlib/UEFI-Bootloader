@@ -48,6 +48,7 @@ typedef struct {
 
 extern fsl_efi *_FSLEFI_;
 public fn EFIAPI Init_FSL(EFI_SYSTEM_TABLE *SystemTable, EFI_HANDLE ImageHandle);
+public fn switch_to_gui_mode();
 public fn read_usb_drive();
 public fn input_strip(const string buff, int *size);
 private inline UINT64 rdtsc(void);
