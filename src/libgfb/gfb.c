@@ -77,11 +77,9 @@ public fn output_large_char(int at_x, int at_y, int width, int height, u32 color
         for (int n = 0; n < 3; n++)
         {
             u64 row = bitmap[bitcount++];
-
             for (int x = 0; x < 8; x++)
             {
                 int bit = 7 - x;
-
                 if ((row >> bit) & 1)
                     draw_pixel(0, 0, at_x + (n * 8) + x, y, color);
             }

@@ -41,7 +41,7 @@ private struct {
     0
 };
 
-private u64 *get_char_bitmap(char ch)
+private ptr get_char_bitmap(char ch)
 {
     for(int i = 0; i < TOTAL_BOLD_FONTS; i++)
         if(bold_fonts[i].ch == ch)
@@ -50,7 +50,7 @@ private u64 *get_char_bitmap(char ch)
     return 0;
 }
 
-private u64 *get_bold_char_bitmap(char ch)
+private ptr get_bold_char_bitmap(char ch)
 {
     for(int i = 0; i < TOTAL_BOLD_FONTS; i++)
         if(bold_fonts[i].ch == ch)

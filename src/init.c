@@ -55,9 +55,13 @@ public fn Init_FSL()
     SYSTEM_USER_NAME = get_line(L"Username: ");
     if(!SYSTEM_USER_NAME)
         return;
+
+    int sz = str_len(SYSTEM_USER_NAME);
+    input_strip(SYSTEM_USER_NAME, &sz);
     print(L"[ + ] Screen Resolution: "), PrintU32(_FSLEFI_->resolution.x), print(L"/"), PrintU32(_FSLEFI_->resolution.y), println(NULL);
 
     init_fsl_theme();
+    place_bold_text(80, 300, 8, 8, 0x00ff0000, 0x00535f46, SYSTEM_USER_NAME);
 }
 
 public fn init_gfb(fsl_efi *fsl)
@@ -137,10 +141,10 @@ public fn input_strip(const string buff, int *size)
     if(!buff)
         return;
 
-    if(buff[*size] == '\n' || buff[*size] == '\r')
+    if(buff[*size] == L'\n' || buff[*size] == L'\r')
         buff[*size] = '\0', (*size)--;
 
-    if(buff[*size] == '\n' || buff[*size] == '\r')
+    if(buff[*size] == L'\n' || buff[*size] == L'\r')
         buff[*size] = '\0', (*size)--;
 }
 
@@ -174,87 +178,4 @@ public string get_line(const string buffer)
         return NULL;
 
     return buff;
-}
-
-public fn fsl_cli()
-{
-    println_color_text(EFI_LIGHTGREEN, EFI_BLACK, L"FSL OS's CLI ");
-    println_color_text(EFI_LIGHTGREEN, EFI_BLACK, L"Type ? for a list of commands");
-    EFI_INPUT_KEY Key;
-    u16 CMD[1024];
-    memzero(CMD, 1024);
-    int len = 0;
-
-    print_color_text_args(EFI_WHITE, EFI_RED, (string []){L"[FSL@", SYSTEM_USER_NAME, L"] ~ #", NULL}), print(L" ");
-    while(1)
-    {
-        u16 ret = gST->ConIn->ReadKeyStroke(gST->ConIn, &Key);
-
-        if(ret == EFI_SUCCESS)
-        {
-            if(Key.UnicodeChar != 0 && is_ascii(Key.UnicodeChar))
-            {
-	            CMD[len++] = Key.UnicodeChar;
-                printc_color_text(EFI_GREEN, EFI_BLACK, CMD[len - 1]);
-			}
-
-
-			if((Key.UnicodeChar == 0x1B || Key.UnicodeChar == L'a') && Key.ScanCode == SCAN_ESC)
-                println(L"ESC key detected");
-
-			if(len > 0 && (Key.UnicodeChar == L'\r' || Key.UnicodeChar == L'\n'))
-            {
-                println(L"\r\n");
-                input_strip(CMD, &len);
-
-                int argc = 0;
-                sArr args = NULL;
-
-                if(mem_cmp(CMD, L"help", 4))
-                {
-                    println_color_text(EFI_WHITE, EFI_BLACK, BANNER);
-                } else if(mem_cmp(CMD, L"ls", 2)) {
-                    println(L"Files:");
-                    list_dir(_FSLEFI_->hdd_handle);
-                } else if(mem_cmp(CMD, L"hdd", 3)) {
-                    print(L"Main Drive Size: "), PrintU32(_FSLEFI_->hdd_handle->DriveSize), println(NULL);
-                } else if(mem_cmp(CMD, L"drives", 6)) {
-                    println(L"Drives:");
-                    list_all_storage_drives();
-                } else if(find_string(CMD, L"set") > -1)
-                {
-                    args = split_string(CMD, ' ', &argc);
-                    if(args) {
-                        if(map_append(_FSLEFI_->variables, args[1], args[2]))
-                            print_color_text_args(EFI_WHITE, EFI_BLACK, (string []){L" Variable set: ", _FSLEFI_->variables->fields[0]->key, L" -> ", _FSLEFI_->variables->fields[0]->value, L"!\r\n", NULL});
-                        else
-                            println_color_text(EFI_WHITE, EFI_RED, L"Failed to set variable!");
-
-                        pfree_array((array)args);
-                    }
-                } else if(find_string(CMD, L"list") > -1) {
-                    for(int i = 0; _FSLEFI_->variables->fields[i] != NULL; i++)
-                        print_args((string []){_FSLEFI_->variables->fields[i]->value, L"\r\n", NULL});
-                } else if(find_string(CMD, L"echo") > -1)
-                {
-                    args = split_string(CMD, ' ', &argc);
-                    if(args) {
-                        string value = find_key(_FSLEFI_->variables, args[1]);
-                        
-                        if(!value) {
-                            println(L"Unable to find variable!");
-                        } else {
-                            print_color_text_args(EFI_WHITE, EFI_BLACK, (string []){L"Variable set: ", value, L"!\r\n", NULL});
-                        }
-                        
-                        pfree_array((array)args);
-                    }
-                }
-                
-                memzero(CMD, 1024);
-                len = 0;
-                print_color_text_args(EFI_WHITE, EFI_RED, (string []){L"[FSL@", SYSTEM_USER_NAME, L"] ~ #", NULL}), print(L" ");
-            }
-        }
-    }
 }

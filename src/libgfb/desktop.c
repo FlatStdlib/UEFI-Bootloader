@@ -38,7 +38,6 @@ public fn display_os_name()
         s_pretty_font,
         l_pretty_font,
         space_font_bitmap,
-        space_font_bitmap,
         o_pretty_font,
         s_pretty_font,
         NULL
@@ -74,7 +73,8 @@ public fn create_info_box()
             draw_pixel(0, 0, y, x, 0x00535f46);
 
     place_bold_text(25, 145, 8, 8, 0x00000000, 0x00535f46, L"[ info and settings ]");
-    place_bold_text(25, 145, 8, 8, 0x00000000, 0x00535f46, L"screen size ");
+    place_bold_text(25, 260, 8, 8, 0x00ff0000, 0x00535f46, L"screen size ");
+    place_bold_text(25, 300, 8, 8, 0x00ff0000, 0x00535f46, L"user ");
 }
 
 public fn create_terminal()
@@ -89,15 +89,9 @@ public fn create_terminal()
         for(int x = start_x; x < end_x; x++)
             draw_pixel(0, 0, x, y, 0x00535f46);
 
-    // atx = _FSLEFI_->resolution.x / 2 - 250;
-    // aty = _FSLEFI_->resolution.y / 2 - 250;
-    // int top_box_endx = atx + 80, top_box_endy = aty + 80;
-    // for(int y = aty; y < top_box_endx; y++)
-    //     for(int x = atx; x < top_box_endy; x++)
-    //         draw_pixel(0, 0, y, x, 0x00ffffff);
-
-    for(int i = start_x; i < start_x + 150; i++)
-        draw_pixel(0, 0, start_x, i, 0x00ff0000);
+    for(int y = start_y; y < start_y + 5; y++)
+        for(int x = start_x; x < start_x + 5; x++)
+            draw_pixel(0, 0, x, y, 0x00535f46);
 
     place_bold_text(start_x + 35, start_y + 35, 8, 8, 0x00535f46, 0x00ffffff, L"terminal");
 }
