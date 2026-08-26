@@ -1,5 +1,19 @@
 import os, sys, subprocess
 
+dependencies = [
+	"sudo apt install gcc-mingw-w64-x86-64 -y",
+	"sudo apt install lld -y",
+	"sudo apt install xorriso -y",
+	"git clone https://git.code.sf.net/p/gnu-efi/code gnu-efi",
+	"cd gnu-efi",
+	"make",
+	"sudo make install"
+]
+
+if "--dep" in sys.argv:
+	for cmd in dependencies: subprocess.getoutput(cmd)
+	exit(0)
+
 ALL_FILES = []
 SOURCE_CODE_FILES = [
     "ls -1 src/*.c",
