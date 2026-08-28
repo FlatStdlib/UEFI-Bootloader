@@ -1,5 +1,4 @@
 third_party_libs
-/build
 /iso/*
 *.iso
 *.fd

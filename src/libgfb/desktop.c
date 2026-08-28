@@ -72,14 +72,14 @@ public fn create_info_box()
         for(int x = start_x; x < end_x; x++)
             draw_pixel(0, 0, y, x, 0x00535f46);
 
-    place_bold_text(25, 145, 8, 8, 0x00000000, 0x00535f46, L"[ info and settings ]");
+    place_bold_text(25, 145, 8, 8, 0x00ff0000, 0x00535f46, L"[ info and settings ]");
     place_bold_text(25, 260, 8, 8, 0x00ff0000, 0x00535f46, L"screen size ");
     place_bold_text(25, 300, 8, 8, 0x00ff0000, 0x00535f46, L"user ");
 }
 
 public fn create_terminal()
 {
-    int start_x = (_FSLEFI_->resolution.x / 2) - 200;
+    int start_x = (_FSLEFI_->resolution.x / 2) - 150;
     int end_x = start_x + 400;
 
     int start_y = (_FSLEFI_->resolution.y / 2) - 150;
@@ -93,7 +93,7 @@ public fn create_terminal()
         for(int x = start_x; x < start_x + 5; x++)
             draw_pixel(0, 0, x, y, 0x00535f46);
 
-    place_bold_text(start_x + 35, start_y + 35, 8, 8, 0x00535f46, 0x00ffffff, L"terminal");
+    place_bold_text(start_x + 35, start_y + 35, 8, 8, 0x00000000, 0x00535f46, L"terminal");
 }
 
 public fn get_cpu_info()
